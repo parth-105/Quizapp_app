@@ -74,4 +74,27 @@ router.post("/login", async (req, res) => {
   res.json(user);
 });
 
+// Spin wheel route
+router.post("/:id/spin", async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  // Check if 24 hours have passed since last spin
+  const now = new Date();
+  if (user.lastSpinAt && now - user.lastSpinAt < 24 * 60 * 60 * 1000) {
+    const nextSpin = new Date(user.lastSpinAt.getTime() + 24 * 60 * 60 * 1000);
+    return res.status(400).json({ error: "You can spin again in 24 hours", nextSpin });
+  }
+
+  // Define possible rewards
+  const rewards = [10, 20, 50, 100, 200];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+  user.totalPoints += reward;
+  user.lastSpinAt = now;
+  await user.save();
+
+  res.json({ reward, totalPoints: user.totalPoints, nextSpin: new Date(now.getTime() + 24 * 60 * 60 * 1000) });
+});
+
 export default router;
