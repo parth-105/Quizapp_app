@@ -82,17 +82,31 @@ router.post("/login", async (req, res) => {
 
 // Smart login/register route
 router.post("/login-or-register", async (req, res) => {
-  const { email, password, name, avatar } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
+  const { email, password, name, avatar, deviceId } = req.body;
+  if (!email || !password || !deviceId) return res.status(400).json({ error: "Missing email, password, or device ID" });
 
   let user = await User.findOne({ email });
 
   if (user) {
     // Login flow
     if (user.password !== password) return res.status(401).json({ error: "Invalid credentials" });
+    // Optionally, block login if deviceId does not match
+    if (user.deviceId && user.deviceId !== deviceId) {
+      return res.status(403).json({ error: "This account is already linked to another device." });
+    }
+    // Optionally, update deviceId if not set
+    if (!user.deviceId) {
+      user.deviceId = deviceId;
+      await user.save();
+    }
     return res.json(user);
   } else {
     // Register flow
+    // Block if deviceId is already used
+    const existingDevice = await User.findOne({ deviceId });
+    if (existingDevice) {
+      return res.status(400).json({ error: "This device is already registered with another account." });
+    }
     const referralCode = (name || email.split("@")[0]).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
     const newUser = await User.create({
       name: name || email.split("@")[0],
@@ -103,6 +117,7 @@ router.post("/login-or-register", async (req, res) => {
       totalPoints: 0,
       referrals: [],
       hasUsedReferralCode: false,
+      deviceId, // Save deviceId
     });
     return res.json(newUser);
   }

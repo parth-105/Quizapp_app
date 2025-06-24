@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   hasUsedReferralCode: { type: Boolean, default: false },
   lastSpinAt: { type: Date, default: null },
+  deviceId: { type: String, unique: true, sparse: true }, // Add this line
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
