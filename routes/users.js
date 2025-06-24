@@ -74,7 +74,7 @@ router.post("/login", async (req, res) => {
   res.json(user);
 });
 
-// Spin wheel route
+// Spin wheel rout
 router.post("/:id/spin", async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
