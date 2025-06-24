@@ -80,6 +80,34 @@ router.post("/login", async (req, res) => {
   res.json(user);
 });
 
+// Smart login/register route
+router.post("/login-or-register", async (req, res) => {
+  const { email, password, name, avatar } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
+
+  let user = await User.findOne({ email });
+
+  if (user) {
+    // Login flow
+    if (user.password !== password) return res.status(401).json({ error: "Invalid credentials" });
+    return res.json(user);
+  } else {
+    // Register flow
+    const referralCode = (name || email.split("@")[0]).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+    const newUser = await User.create({
+      name: name || email.split("@")[0],
+      email,
+      password,
+      avatar: avatar || "👤",
+      referralCode,
+      totalPoints: 0,
+      referrals: [],
+      hasUsedReferralCode: false,
+    });
+    return res.json(newUser);
+  }
+});
+
 // Spin wheel rout
 router.post("/:id/spin", async (req, res) => {
   const user = await User.findById(req.params.id);
