@@ -51,16 +51,22 @@ router.post("/:id/use-referral", async (req, res) => {
   if (!referrer) return res.status(400).json({ error: "Invalid referral code" });
   if (referrer._id.equals(user._id)) return res.status(400).json({ error: "Cannot use your own code" });
 
+  // Both users get points
   user.referredBy = referrer._id;
   user.hasUsedReferralCode = true;
-  user.totalPoints += 100;
-  await user.save();
+  user.totalPoints += 100; // Points for the user who uses the code
 
   referrer.referrals.push(user._id);
-  referrer.totalPoints += 100;
+  referrer.totalPoints += 100; // Points for the referrer
+
+  await user.save();
   await referrer.save();
 
-  res.json({ message: "Referral successful", user, referrer });
+  res.json({
+    message: `Referral successful! You and ${referrer.name} both earned 100 points!`,
+    user,
+    referrer,
+  });
 });
 
 // Login route (by email and password)
