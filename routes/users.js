@@ -174,4 +174,43 @@ router.post("/:id/spin", async (req, res) => {
   });
 });
 
+// Add this route to update points after spin
+router.post("/:id/spin-result", async (req, res) => {
+  const { reward } = req.body;
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const now = new Date();
+  user.lastSpinAt = now;
+
+  if (typeof reward === "number") {
+    user.totalPoints += reward;
+    await user.save();
+    return res.json({
+      reward,
+      message: `You won ${reward} points!`,
+      totalPoints: user.totalPoints,
+      nextSpin: new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    });
+  } else if (reward === "spin again") {
+    await user.save();
+    return res.json({
+      reward,
+      message: "Congratulations! You get another spin!",
+      totalPoints: user.totalPoints,
+      nextSpin: null
+    });
+  } else if (reward === "better luck next time") {
+    await user.save();
+    return res.json({
+      reward,
+      message: "Better luck next time! No points awarded.",
+      totalPoints: user.totalPoints,
+      nextSpin: new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    });
+  } else {
+    return res.status(400).json({ error: "Invalid reward" });
+  }
+});
+
 export default router;
