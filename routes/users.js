@@ -128,7 +128,7 @@ router.post("/:id/spin", async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  // Check if 24 hours have passed since last spin
+  // Check if 24 hours have passed since last spinn
   const now = new Date();
   if (user.lastSpinAt && now - user.lastSpinAt < 24 * 60 * 60 * 1000) {
     const nextSpin = new Date(user.lastSpinAt.getTime() + 24 * 60 * 60 * 1000);
