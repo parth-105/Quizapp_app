@@ -135,15 +135,43 @@ router.post("/:id/spin", async (req, res) => {
     return res.status(400).json({ error: "You can spin again in 24 hours", nextSpin });
   }
 
-  // Define possible rewards
-  const rewards = [10, 20, 50, 100, 200];
+  // Define possible rewards including new features
+  const rewards = [10, 20, 5, 25, 50, 100, "spin again", "better luck next time"];
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
+  if (reward === "spin again") {
+    // Do not update lastSpinAt, allow another spin
+    return res.json({
+      reward,
+      message: "Congratulations! You get another spin!",
+      totalPoints: user.totalPoints,
+      nextSpin: null
+    });
+  }
+
+  if (reward === "better luck next time") {
+    // Update lastSpinAt, no points awarded
+    user.lastSpinAt = now;
+    await user.save();
+    return res.json({
+      reward,
+      message: "Better luck next time! No points awarded.",
+      totalPoints: user.totalPoints,
+      nextSpin: new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    });
+  }
+
+  // Normal reward
   user.totalPoints += reward;
   user.lastSpinAt = now;
   await user.save();
 
-  res.json({ reward, totalPoints: user.totalPoints, nextSpin: new Date(now.getTime() + 24 * 60 * 60 * 1000) });
+  res.json({
+    reward,
+    message: `You won ${reward} points!`,
+    totalPoints: user.totalPoints,
+    nextSpin: new Date(now.getTime() + 24 * 60 * 60 * 1000)
+  });
 });
 
 export default router;
