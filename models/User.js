@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
       points: Number,
     }
   ],
+  lastPodiumRank: { type: Number, default: null },
+  lastPodiumBonus: { type: Number, default: 0 },
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

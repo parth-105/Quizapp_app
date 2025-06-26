@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import usersRouter from "../routes/users.js";
 import subjectsRouter from "../routes/subjects.js";
 import leaderboardRouter from "../routes/leaderboard.js";
+import cron from "node-cron";
+import { resetLeaderboardAndRewardPodium } from "../cron/leaderboardReset.js";
 
 dotenv.config();
 
@@ -24,5 +26,8 @@ app.get("/", (req, res) => res.send("Quiz API running"));
 
 // const PORT = process.env.PORT || 5000;
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Every Sunday at midnight
+cron.schedule("0 0 * * 0", resetLeaderboardAndRewardPodium);
 
 export default app;
