@@ -233,4 +233,23 @@ router.post("/:id/spin-result", async (req, res) => {
   }
 });
 
+// Refer route
+router.post("/:id/refer", async (req, res) => {
+  const { referralCode } = req.body;
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+  if (user.referredBy) return res.status(400).json({ error: "Already referred" });
+
+  const referrer = await User.findOne({ referralCode });
+  if (!referrer) return res.status(404).json({ error: "Referral code not found" });
+
+  user.referredBy = referralCode;
+  user.totalPoints += 100; // or your referral bonus
+  referrer.totalPoints += 100; // or your referral bonus
+  await user.save();
+  await referrer.save();
+
+  res.json({ message: "Referral successful", user, referrer });
+});
+
 export default router;
