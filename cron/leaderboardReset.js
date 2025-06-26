@@ -16,7 +16,7 @@ export async function resetLeaderboardAndRewardPodium() {
     // Sort by points7Days descending
     usersWith7DayPoints.sort((a, b) => b.points7Days - a.points7Days);
 
-    // Apply multipliers to top 3
+    // Apply multipliers to top 
     const multipliers = [1.5, 1.3, 1.1];
     for (let i = 0; i < 3; i++) {
       if (usersWith7DayPoints[i] && usersWith7DayPoints[i].points7Days > 0) {
