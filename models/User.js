@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema({
   hasUsedReferralCode: { type: Boolean, default: false },
   lastSpinAt: { type: Date, default: null },
   deviceId: { type: String, unique: true, sparse: true }, // Add this line
+  pointsHistory: [
+    {
+      date: String, // 'YYYY-MM-DD'
+      points: Number,
+    }
+  ],
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

@@ -34,6 +34,10 @@ router.post("/:id/points", async (req, res) => {
     { $inc: { totalPoints: points } },
     { new: true }
   );
+  if (user) {
+    updatePointsHistory(user, points);
+    await user.save();
+  }
   res.json(user);
 });
 
@@ -174,6 +178,21 @@ router.post("/:id/spin", async (req, res) => {
   });
 });
 
+function updatePointsHistory(user, points) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  user.pointsHistory = user.pointsHistory || [];
+  // Keep only last 7 days
+  user.pointsHistory = user.pointsHistory.filter(entry =>
+    new Date(entry.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  );
+  const todayEntry = user.pointsHistory.find(entry => entry.date === todayStr);
+  if (todayEntry) {
+    todayEntry.points += points;
+  } else {
+    user.pointsHistory.push({ date: todayStr, points });
+  }
+}
+
 // Add this route to update points after spin
 router.post("/:id/spin-result", async (req, res) => {
   const { reward } = req.body;
@@ -185,6 +204,7 @@ router.post("/:id/spin-result", async (req, res) => {
 
   if (typeof reward === "number") {
     user.totalPoints += reward;
+    updatePointsHistory(user, reward);
     await user.save();
     return res.json({
       reward,
