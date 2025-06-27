@@ -79,7 +79,7 @@ router.post('/withdraw', async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    const coupon = await Coupon.findOne({ _id: couponId, expiryDate: { $gte: new Date() } });
+    const coupon = await Coupon.findOne({ _id: couponId });
     if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found or expired' });
 
     // Check if user has enough points
@@ -106,6 +106,11 @@ router.post('/withdraw', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// Test route
+router.get("/test", (req, res) => {
+  res.json({ success: true, message: "Test route works!" });
 });
 
 export default router;
