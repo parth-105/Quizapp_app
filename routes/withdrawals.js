@@ -91,7 +91,7 @@ router.post('/withdraw', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     const coupon = await Coupon.findOne({ _id: couponId });
-    if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found or expired' });
+    if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found' });
 
     // Check if user has enough points
     if (user.totalPoints < coupon.amount) {
@@ -101,6 +101,10 @@ router.post('/withdraw', async (req, res) => {
     // Prevent duplicate pending withdrawal for same coupon
     const existing = await Withdraw.findOne({ userId, couponId, status: "pending" });
     if (existing) return res.status(400).json({ success: false, message: "Already requested withdrawal for this coupon" });
+
+    // Deduct points from user
+    user.totalPoints -= coupon.amount;
+    await user.save();
 
     // Create new withdraw request
     const withdrawRequest = new Withdraw({
