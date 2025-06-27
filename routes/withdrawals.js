@@ -21,15 +21,17 @@ router.get("/", async (req, res) => {
 // Approve withdrawal (admin)
 router.post("/:id/approve", async (req, res) => {
   try {
+    const { code } = req.body;
     const withdraw = await Withdraw.findById(req.params.id);
     if (!withdraw) return res.status(404).json({ success: false, message: "Request not found" });
     if (withdraw.status !== "pending") return res.status(400).json({ success: false, message: "Already processed" });
 
     withdraw.status = "approved";
-    withdraw.withdrawalCode = "WD" + Math.random().toString(36).substr(2, 8).toUpperCase();
+    withdraw.couponCode = code; // Save the code entered by admin
     withdraw.approvedAt = new Date();
     await withdraw.save();
-    res.json({ success: true, withdrawalCode: withdraw.withdrawalCode });
+
+    res.json({ success: true, message: "Withdrawal approved", code });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
