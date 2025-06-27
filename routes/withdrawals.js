@@ -57,7 +57,16 @@ router.post("/:id/reject", async (req, res) => {
 // GET /api/withdrawal-requests/user/:userId
 router.get("/user/:userId", async (req, res) => {
   try {
-    // Find latest approved withdrawal for this user
+    if (req.query.all === "true") {
+      const withdrawals = await Withdraw.find({
+        userId: req.params.userId,
+        status: "approved"
+      })
+        .sort({ approvedAt: -1 })
+        .populate("couponId", "code description amount");
+      return res.json({ success: true, withdrawals });
+    }
+    // Default: return latest approved
     const withdrawal = await Withdraw.findOne({
       userId: req.params.userId,
       status: "approved"
