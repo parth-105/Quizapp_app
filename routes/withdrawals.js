@@ -52,4 +52,22 @@ router.post("/:id/reject", async (req, res) => {
   }
 });
 
+// GET /api/withdrawal-requests/user/:userId
+router.get("/user/:userId", async (req, res) => {
+  try {
+    // Find latest approved withdrawal for this user
+    const withdrawal = await Withdraw.findOne({
+      userId: req.params.userId,
+      status: "approved"
+    })
+      .sort({ approvedAt: -1 })
+      .populate("couponId", "code description amount");
+    if (!withdrawal)
+      return res.json({ success: false, message: "No approved withdrawal found" });
+    res.json({ success: true, withdrawal });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 export default router;
