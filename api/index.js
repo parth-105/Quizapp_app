@@ -6,6 +6,7 @@ import usersRouter from "../routes/users.js";
 import subjectsRouter from "../routes/subjects.js";
 import leaderboardRouter from "../routes/leaderboard.js";
 import withdrawalsRouter from "../routes/withdrawals.js";
+import adminRouter from "../routes/admin.js";
 import cron from "node-cron";
 import { resetLeaderboardAndRewardPodium } from "../cron/leaderboardReset.js";
 
@@ -23,6 +24,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/subjects", subjectsRouter);
 app.use("/api/leaderboard", leaderboardRouter);
 app.use("/api/withdrawal-requests", withdrawalsRouter);
+app.use("/api/admin", adminRouter);
 
 app.get("/", (req, res) => res.send("Quiz API running"));
 
