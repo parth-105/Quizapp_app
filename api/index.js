@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import usersRouter from "../routes/users.js";
 import subjectsRouter from "../routes/subjects.js";
 import leaderboardRouter from "../routes/leaderboard.js";
+import withdrawalsRouter from "../routes/withdrawals.js";
 import cron from "node-cron";
 import { resetLeaderboardAndRewardPodium } from "../cron/leaderboardReset.js";
 
@@ -21,6 +22,7 @@ mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopol
 app.use("/api/users", usersRouter);
 app.use("/api/subjects", subjectsRouter);
 app.use("/api/leaderboard", leaderboardRouter);
+app.use("/api/withdrawal-requests", withdrawalsRouter);
 
 app.get("/", (req, res) => res.send("Quiz API running"));
 

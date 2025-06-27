@@ -1,5 +1,10 @@
 import express from "express";
 import User from "../models/User.js";
+import Coupon from "../models/Coupon";
+import Withdraw from "../models/Withdraw";
+
+
+
 
 const router = express.Router();
 
@@ -251,5 +256,55 @@ router.post("/:id/refer", async (req, res) => {
 
   res.json({ message: "Referral successful", user, referrer });
 });
+
+
+
+
+// GET /coupons?userId=123 - List all coupons assigned to user
+router.get('/coupons', async (req, res) => {
+  const { userId } = req.query;
+  try {
+    // Fetch coupons valid for user (e.g., belonging to user or global coupons)
+    const coupons = await Coupon.find({ userId, expiryDate: { $gte: new Date() } });
+    res.json({ success: true, coupons });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch coupons' });
+  }
+});
+
+// POST /withdraw - User submits withdrawal request
+router.post('/withdraw', async (req, res) => {
+  const { userId, couponId } = req.body;
+  if (!userId || !couponId) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const coupon = await Coupon.findOne({ _id: couponId, userId, expiryDate: { $gte: new Date() } });
+    if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found or expired' });
+
+    // Prevent duplicate pending withdrawal for same coupon
+    const existing = await Withdraw.findOne({ userId, couponId, status: "pending" });
+    if (existing) return res.status(400).json({ success: false, message: "Already requested withdrawal for this coupon" });
+
+    // Create new withdraw request
+    const withdrawRequest = new Withdraw({
+      userId,
+      couponId,
+      couponCode: coupon.code,
+      amount: coupon.amount,
+      status: 'pending',
+      requestedAt: new Date(),
+    });
+    await withdrawRequest.save();
+
+    res.json({ success: true, message: 'Withdrawal request submitted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 
 export default router;
