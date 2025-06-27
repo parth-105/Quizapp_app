@@ -4,7 +4,8 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const coupons = await Coupon.find();
+    // Only show unexpired coupons
+    const coupons = await Coupon.find({ expiryDate: { $gte: new Date() } });
     res.json({ coupons });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
