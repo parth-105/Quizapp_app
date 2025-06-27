@@ -98,8 +98,41 @@ router.post('/withdraw', async (req, res) => {
       return res.status(400).json({ success: false, message: "Not enough points to redeem this coupon" });
     }
 
-    // Deduct points from user
+    // Calculate points earned in last 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    let points7Days = 0;
+    user.pointsHistory = user.pointsHistory || [];
+    user.pointsHistory.forEach(entry => {
+      if (new Date(entry.date) >= sevenDaysAgo) {
+        points7Days += entry.points;
+      }
+    });
+
+    // Deduct from last 7 days first, then from totalPoints
+    let deductFrom7Days = Math.min(points7Days, coupon.amount);
+    let deductFromTotal = coupon.amount - deductFrom7Days;
+
+    // 1. Deduct from pointsHistory (last 7 days)
+    if (deductFrom7Days > 0) {
+      let toDeduct = deductFrom7Days;
+      user.pointsHistory = user.pointsHistory.map(entry => {
+        if (toDeduct > 0 && new Date(entry.date) >= sevenDaysAgo) {
+          const deduct = Math.min(entry.points, toDeduct);
+          entry.points -= deduct;
+          toDeduct -= deduct;
+        }
+        return entry;
+      });
+    }
+
+    // 2. Deduct from totalPoints
     user.totalPoints -= coupon.amount;
+    if (user.totalPoints < 0) user.totalPoints = 0;
+
+    // Clean up pointsHistory (remove zero entries)
+    user.pointsHistory = user.pointsHistory.filter(entry => entry.points > 0);
+
     await user.save();
 
     // Create new withdraw request
