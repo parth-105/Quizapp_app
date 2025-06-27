@@ -1,6 +1,6 @@
 import express from "express";
 import User from "../models/User.js";
-import Coupon from "../models/Coupon";
+import Coupon from "../models/Coupon.js";
 import Withdraw from "../models/Withdraw";
 
 
