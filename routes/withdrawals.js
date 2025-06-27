@@ -98,10 +98,6 @@ router.post('/withdraw', async (req, res) => {
       return res.status(400).json({ success: false, message: "Not enough points to redeem this coupon" });
     }
 
-    // Prevent duplicate pending withdrawal for same coupon
-    const existing = await Withdraw.findOne({ userId, couponId, status: "pending" });
-    if (existing) return res.status(400).json({ success: false, message: "Already requested withdrawal for this coupon" });
-
     // Deduct points from user
     user.totalPoints -= coupon.amount;
     await user.save();
