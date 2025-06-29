@@ -306,5 +306,49 @@ router.post('/withdraw', async (req, res) => {
   }
 });
 
+// GET /api/users/:id/scratch-status
+router.get("/:id/scratch-status", async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const now = new Date();
+  const nextScratchTime = user.nextScratchTime || new Date(0);
+  const scratchAdUsedDate = user.scratchAdUsedDate || "";
+  const todayStr = now.toISOString().slice(0, 10);
+
+  res.json({
+    canScratch: now >= nextScratchTime,
+    nextScratchTime,
+    scratchAdUsedToday: scratchAdUsedDate === todayStr,
+    serverTime: now,
+  });
+});
+
+// POST /api/users/:id/use-scratch
+router.post("/:id/use-scratch", async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const now = new Date();
+  // Set next scratch time to next midnight
+  const next = new Date(now);
+  next.setHours(24, 0, 0, 0);
+  user.nextScratchTime = next;
+  await user.save();
+
+  res.json({ success: true, nextScratchTime: user.nextScratchTime });
+});
+
+// POST /api/users/:id/use-scratch-ad
+router.post("/:id/use-scratch-ad", async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  user.scratchAdUsedDate = todayStr;
+  await user.save();
+
+  res.json({ success: true, scratchAdUsedDate: user.scratchAdUsedDate });
+});
 
 export default router;

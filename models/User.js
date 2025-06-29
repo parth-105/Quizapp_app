@@ -11,13 +11,15 @@ const userSchema = new mongoose.Schema({
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   hasUsedReferralCode: { type: Boolean, default: false },
   lastSpinAt: { type: Date, default: null },
-  deviceId: { type: String, unique: true, sparse: true }, // Add this line
+  deviceId: { type: String, unique: true, sparse: true },
   pointsHistory: [
     {
       date: String, // 'YYYY-MM-DD'
       points: Number,
     }
   ],
+  nextScratchTime: { type: Date, default: null },
+  scratchAdUsedDate: { type: String, default: null },
   lastPodiumRank: { type: Number, default: null },
   lastPodiumBonus: { type: Number, default: 0 },
 }, { timestamps: true });
